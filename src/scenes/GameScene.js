@@ -133,17 +133,7 @@ export class GameScene extends Phaser.Scene {
         this.spawnEnemy(1500, 300, 50);
         this.spawnEnemy(2400, 500, 70);  // Novo inimigo após a primeira barreira
         this.spawnEnemy(2650, 500, 100);
-
-        const explorationSeeds = [
-            { x: 450, y: 400 },  // Em cima da primeira plataforma aérea
-            { x: 750, y: 300 },  // Na plataforma de salto
-            { x: 1750, y: 400 }  // Próximo à primeira barreira
-        ];
-
-        explorationSeeds.forEach(pos => {
-            this.spawnSeed(pos.x, pos.y);
-        });
-
+        
         // Correção de Ancoragem (Origin Pivot)
         // Posicionamento exato no eixo Y da superfície (568)
         const barrier1 = this.barriers.create(1950, 568, 'fog');
