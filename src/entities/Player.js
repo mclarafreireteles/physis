@@ -8,22 +8,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.setCollideWorldBounds(true);
         this.body.setSize(32, 32);
         
-        // Atributos do GDD
         this.health = 3;
         this.seeds = 0;
         this.spawnPoint = { x, y };
         
-        // Controles W, A, D, E
-        this.keys = scene.input.keyboard.addKeys('W,A,D,E');
+        // Controle de Estado: Previne dano contínuo instantâneo
+        this.isInvulnerable = false;
         
-        // UI do jogador vinculada à cena
+        this.keys = scene.input.keyboard.addKeys('W,A,D,E');
         this.uiText = scene.add.text(16, 16, '', { fontSize: '18px', fill: '#ffffff' });
-        this.uiText.setScrollFactor(0); // Fixo na tela
+        this.uiText.setScrollFactor(0);
         this.updateUI();
     }
 
     update() {
-        // Movimentação A/D
         if (this.keys.A.isDown) {
             this.setVelocityX(-200);
         } else if (this.keys.D.isDown) {
@@ -32,16 +30,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityX(0);
         }
 
-        // Pulo W
         if (this.keys.W.isDown && this.body.touching.down) {
             this.setVelocityY(-450);
+        }
+
+        // Gatilho de Plano de Morte (Kill Plane)
+        if (this.y > 570) {
+            this.die();
         }
     }
 
     takeDamage() {
+        // Ignora a chamada de dano se o jogador estiver no período de invulnerabilidade
+        if (this.isInvulnerable) return;
+
         this.health -= 1;
+        this.isInvulnerable = true; // Bloqueia novos danos
         this.setTint(0xff0000);
-        this.scene.time.delayedCall(200, () => this.clearTint());
+        
+        // Define o tempo de invulnerabilidade (1000 milissegundos)
+        this.scene.time.delayedCall(1000, () => {
+            this.clearTint();
+            this.isInvulnerable = false;
+        });
         
         if (this.health <= 0) {
             this.die();
@@ -50,11 +61,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     die() {
-        // Reseta atributos e posição para o último canteiro (checkpoint)
         this.health = 3;
         this.seeds = 0;
+        this.isInvulnerable = false;
+        this.clearTint();
         this.setPosition(this.spawnPoint.x, this.spawnPoint.y);
-        this.scene.resetArea(); // Chama método da cena para resetar inimigos/névoa
+        this.setVelocity(0, 0);
+        this.scene.resetArea();
         this.updateUI();
     }
 
