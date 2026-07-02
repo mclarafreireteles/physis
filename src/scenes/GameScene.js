@@ -81,14 +81,19 @@ export class GameScene extends Phaser.Scene {
     }
 
     spawnInitialEnemies() {
+        // Inimigo 1: Patrulha no nível inferior
         const enemy1 = this.enemies.create(300, 500, 'enemy');
         enemy1.setVelocityX(50);
-        enemy1.setBounceX(1);
-        enemy1.setCollideWorldBounds(true);
+        enemy1.setBounceX(1); // Garante que a energia cinética seja conservada ao bater (inverte a direção)
+        enemy1.setCollideWorldBounds(true); // Impede que saia da tela
 
+        // Inimigo 2: Patrulha na plataforma superior
         const enemy2 = this.enemies.create(650, 400, 'enemy');
         enemy2.setVelocityX(-50);
         enemy2.setBounceX(1);
+        
+        // CORREÇÃO CRÍTICA: Aplicação da restrição de limite espacial
+        enemy2.setCollideWorldBounds(true); 
     }
 
     handleEnemyCollision(player, enemy) {
