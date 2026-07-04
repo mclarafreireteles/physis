@@ -278,8 +278,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     spawnSeed(x, y) {
-        const seed = this.seeds.create(x, y, 'seed');
+        const seed = this.seeds.create(x, y, 'rune');
+        seed.play('rune_spin');
         seed.setBounceY(0.3);
+        seed.setDepth(1);
     }
 
     handleSeedCollection(player, seed) {
