@@ -49,8 +49,7 @@ export class GameScene extends Phaser.Scene {
         this.enemies = this.physics.add.group();
         this.seeds = this.physics.add.group();
         this.barriers = this.physics.add.staticGroup();
-        
-        // Novo Grupo: Paredes invisíveis exclusivas para restringir inimigos
+        this.curedAnimals = this.physics.add.group();
         this.enemyWalls = this.physics.add.staticGroup();
 
         this.createLevelLayout();
@@ -61,8 +60,7 @@ export class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.enemies, this.platforms);
         this.physics.add.collider(this.seeds, this.platforms);
-        
-        // Restringe a movimentação dos inimigos aos limites projetados
+        this.physics.add.collider(this.curedAnimals, this.platforms)    
         this.physics.add.collider(this.enemies, this.enemyWalls);
 
         this.physics.add.collider(this.player, this.enemies, this.handleEnemyCollision, null, this);
@@ -133,7 +131,7 @@ export class GameScene extends Phaser.Scene {
         this.spawnEnemy(1500, 300, 50);
         this.spawnEnemy(2400, 500, 70);  // Novo inimigo após a primeira barreira
         this.spawnEnemy(2650, 500, 100);
-        
+
         // Correção de Ancoragem (Origin Pivot)
         // Posicionamento exato no eixo Y da superfície (568)
         const barrier1 = this.barriers.create(1950, 568, 'fog');
@@ -158,10 +156,30 @@ export class GameScene extends Phaser.Scene {
     }
 
     handleEnemyCollision(player, enemy) {
+        if (enemy.texture.key === 'animal_cured') return;
+
         if (player.body.touching.down && enemy.body.touching.up) {
+            
+            // 1. Feedback cinemático imediato para o jogador
             player.setVelocityY(-350); 
             this.spawnSeed(enemy.x, enemy.y);
-            enemy.destroy();
+            
+            // 2. Transição visual e bloqueio de movimento agressivo
+            enemy.setTexture('animal_cured');
+            enemy.setVelocity(0, -150); // Para a marcha e dá um pequeno pulo
+            enemy.setImmovable(true);
+            
+            // 3. EXECUÇÃO DIFERIDA (A Correção Estrutural)
+            // Utiliza delayedCall com tempo 0 para transferir a execução para o final da fila de eventos (Post-Update),
+            // garantindo que a matemática da física não seja corrompida no quadro atual.
+            this.time.delayedCall(0, () => {
+                this.enemies.remove(enemy);
+                this.curedAnimals.add(enemy);
+                
+                // Reafirma a restrição espacial no novo grupo para garantir que não saia da câmara
+                enemy.setCollideWorldBounds(true); 
+            });
+
         } else {
             this.executePlayerDamage(player, enemy);
         }
@@ -211,6 +229,7 @@ export class GameScene extends Phaser.Scene {
 
     resetArea() {
         this.enemies.clear(true, true);
+        this.curedAnimals.clear(true, true);
         this.seeds.clear(true, true);
         this.barriers.clear(true, true);
         this.hazards.clear(true, true);
