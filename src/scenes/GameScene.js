@@ -35,6 +35,11 @@ export class GameScene extends Phaser.Scene {
         graphics.fillStyle(0x32a852, 0.6);
         graphics.fillRect(0, 0, 40, 240);
         graphics.generateTexture('fog', 40, 240);
+
+        graphics.clear();
+        graphics.fillStyle(0x2ecc71, 1);
+        graphics.fillEllipse(16, 16, 12, 28); 
+        graphics.generateTexture('ui_leaf', 32, 32);
     }
 
     create() {
@@ -216,7 +221,7 @@ export class GameScene extends Phaser.Scene {
                 } else {
                     this.barrierText2.destroy();
                     this.cameras.main.setBackgroundColor('#1d4a2b');
-                    this.add.text(this.cameras.main.scrollX + 250, 250, 'Floresta Revitalizada!', { fontSize: '32px', fill: '#00ff00' });
+                    this.add.text(this.cameras.main.scrollX + 230, 250, 'Floresta Revitalizada!', { fontSize: '32px', fill: '#00ff00' });
                 }
                 barrier.destroy();
             }
