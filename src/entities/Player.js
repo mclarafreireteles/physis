@@ -1,12 +1,18 @@
 export class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, x, y, 'luna');
-        
+        super(scene, x, y, 'fox', 0);
+
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        
+
         this.setCollideWorldBounds(true);
-        this.body.setSize(32, 32);
+        this.setDepth(5);
+        // The fox art sits inside a mostly-empty 64x64 frame. Keep a compact
+        // collider anchored near the fox's feet so gameplay physics stay close
+        // to the original 32x32 box.
+        this.body.setSize(30, 30);
+        this.body.setOffset(17, 30);
+        this.play('fox_idle');
         
         this.health = 3;
         this.seeds = 0;
@@ -43,16 +49,35 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     update() {
+        const onGround = this.body.touching.down || this.body.blocked.down;
+
         if (this.keys.A.isDown) {
             this.setVelocityX(-200);
+            this.setFlipX(false); // fox faces left in the sheet
         } else if (this.keys.D.isDown) {
             this.setVelocityX(200);
+            this.setFlipX(true);
         } else {
             this.setVelocityX(0);
         }
 
-        if (this.keys.W.isDown && this.body.touching.down) {
+        if (this.keys.W.isDown && onGround) {
             this.setVelocityY(-450);
+        }
+
+        // Don't override the hit animation while it is still playing.
+        const playingHit = this.anims.currentAnim
+            && this.anims.currentAnim.key === 'fox_hit'
+            && this.anims.isPlaying;
+
+        if (!playingHit) {
+            if (!onGround) {
+                this.play('fox_jump', true);
+            } else if (this.body.velocity.x !== 0) {
+                this.play('fox_walk', true);
+            } else {
+                this.play('fox_idle', true);
+            }
         }
 
         if (this.y > 570) {
@@ -66,7 +91,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.health -= 1;
         this.isInvulnerable = true;
         this.setTint(0xff0000);
-        
+        this.play('fox_hit', true);
+
         this.scene.time.delayedCall(1000, () => {
             this.clearTint();
             this.isInvulnerable = false;
