@@ -101,6 +101,17 @@ export class GameScene extends Phaser.Scene {
             });
         }
 
+        // --- Parallax background (behind everything) ---
+        this.bgLayers = [];
+        for (let i = 1; i <= 5; i++) {
+            const layer = this.add.tileSprite(0, 0, 800, 600, 'bg' + i)
+                .setOrigin(0, 0)
+                .setScrollFactor(0)      // pinned to the camera; we scroll via tilePositionX
+                .setTileScale(1.85, 1.85)
+                .setDepth(-20 + i);      // -19..-15, all behind platforms/scenery
+            this.bgLayers.push(layer);
+        }
+
         const worldWidth = 3200;
         const worldHeight = 600;
         
@@ -134,6 +145,14 @@ export class GameScene extends Phaser.Scene {
 
     update() {
         this.player.update();
+
+        if (this.bgLayers) {
+            const scrollX = this.cameras.main.scrollX;
+            this.bgLayers.forEach((layer, i) => {
+                // Farther layers (lower i) scroll slower for depth.
+                layer.tilePositionX = scrollX * (0.15 + i * 0.15);
+            });
+        }
     }
 
     createLevelLayout() {
