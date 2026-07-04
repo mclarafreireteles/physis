@@ -151,10 +151,11 @@ export class GameScene extends Phaser.Scene {
         ];
 
         platformData.forEach(data => {
-            const platform = this.platforms.create(data.x, data.y, 'block');
+            const platform = this.add.tileSprite(data.x, data.y, data.width, 32, 'ground_tile');
             platform.setOrigin(0, 0);
-            platform.setDisplaySize(data.width, 32);
-            platform.refreshBody();
+            platform.setDepth(0);
+            this.physics.add.existing(platform, true); // true = static body
+            this.platforms.add(platform);
         });
 
         // Delimitadores Virtuais: Criados nas bordas dos buracos para conter os inimigos
