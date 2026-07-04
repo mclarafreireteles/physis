@@ -38,11 +38,69 @@ export class GameScene extends Phaser.Scene {
 
         graphics.clear();
         graphics.fillStyle(0x2ecc71, 1);
-        graphics.fillEllipse(16, 16, 12, 28); 
+        graphics.fillEllipse(16, 16, 12, 28);
         graphics.generateTexture('ui_leaf', 32, 32);
+
+        // --- Pixel-art assets ---
+        const SWAMP = 'assets/free-swamp-game-tileset-pixel-art/';
+
+        this.load.spritesheet('fox', 'assets/fox_charsheet_by_kinetic-kitsune.png', {
+            frameWidth: 64,
+            frameHeight: 64
+        });
+
+        this.load.image('ground_tile', SWAMP + '1 Tiles/Tile_02.png');
+
+        this.load.spritesheet('rune', SWAMP + '4 Animated objects/Rune.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+
+        for (let i = 1; i <= 5; i++) {
+            this.load.image('bg' + i, SWAMP + '2 Background/Layers/' + i + '.png');
+        }
+
+        this.load.image('tree1', SWAMP + '3 Objects/Trees/1.png');
+        this.load.image('tree2', SWAMP + '3 Objects/Trees/2.png');
+        this.load.image('bush1', SWAMP + '3 Objects/Bushes/1.png');
+        this.load.image('grass1', SWAMP + '3 Objects/Grass/1.png');
+        this.load.image('stone1', SWAMP + '3 Objects/Stones/1.png');
     }
 
     create() {
+        if (!this.anims.exists('fox_idle')) {
+            this.anims.create({
+                key: 'fox_idle',
+                frames: this.anims.generateFrameNumbers('fox', { start: 0, end: 1 }),
+                frameRate: 4,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'fox_walk',
+                frames: this.anims.generateFrameNumbers('fox', { start: 33, end: 40 }),
+                frameRate: 12,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'fox_jump',
+                frames: this.anims.generateFrameNumbers('fox', { start: 44, end: 45 }),
+                frameRate: 6,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'fox_hit',
+                frames: this.anims.generateFrameNumbers('fox', { start: 55, end: 56 }),
+                frameRate: 8,
+                repeat: 0
+            });
+            this.anims.create({
+                key: 'rune_spin',
+                frames: this.anims.generateFrameNumbers('rune', { start: 0, end: 3 }),
+                frameRate: 8,
+                repeat: -1
+            });
+        }
+
         const worldWidth = 3200;
         const worldHeight = 600;
         
