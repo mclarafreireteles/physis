@@ -153,6 +153,8 @@ export class GameScene extends Phaser.Scene {
         enemy.setVelocityX(velocityX);
         enemy.setBounceX(1);
         enemy.setCollideWorldBounds(true);
+        
+        enemy.setPushable(false);
     }
 
     handleEnemyCollision(player, enemy) {
@@ -160,23 +162,17 @@ export class GameScene extends Phaser.Scene {
 
         if (player.body.touching.down && enemy.body.touching.up) {
             
-            // 1. Feedback cinemático imediato para o jogador
             player.setVelocityY(-350); 
             this.spawnSeed(enemy.x, enemy.y);
             
-            // 2. Transição visual e bloqueio de movimento agressivo
             enemy.setTexture('animal_cured');
-            enemy.setVelocity(0, -150); // Para a marcha e dá um pequeno pulo
+            enemy.setVelocity(0, -150); 
             enemy.setImmovable(true);
             
-            // 3. EXECUÇÃO DIFERIDA (A Correção Estrutural)
-            // Utiliza delayedCall com tempo 0 para transferir a execução para o final da fila de eventos (Post-Update),
-            // garantindo que a matemática da física não seja corrompida no quadro atual.
             this.time.delayedCall(0, () => {
                 this.enemies.remove(enemy);
                 this.curedAnimals.add(enemy);
                 
-                // Reafirma a restrição espacial no novo grupo para garantir que não saia da câmara
                 enemy.setCollideWorldBounds(true); 
             });
 
