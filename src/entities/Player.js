@@ -53,10 +53,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
         if (this.keys.A.isDown) {
             this.setVelocityX(-200);
-            this.setFlipX(false); // fox faces left in the sheet
+            this.setFlipX(true); // fox faces right in the sheet, so mirror it to go left
         } else if (this.keys.D.isDown) {
             this.setVelocityX(200);
-            this.setFlipX(true);
+            this.setFlipX(false);
         } else {
             this.setVelocityX(0);
         }
