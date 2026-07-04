@@ -215,6 +215,29 @@ export class GameScene extends Phaser.Scene {
         this.spawnEnemy(2400, 500, 70);  // Novo inimigo após a primeira barreira
         this.spawnEnemy(2650, 500, 100);
 
+        // --- Decoração ambiental (sem colisão, atrás das plataformas) ---
+        const decoData = [
+            { x: 250, y: 568, key: 'tree1',  ox: 0.5, oy: 1 },
+            { x: 820, y: 568, key: 'tree2',  ox: 0.5, oy: 1 },
+            { x: 2250, y: 568, key: 'tree1', ox: 0.5, oy: 1 },
+            { x: 2800, y: 568, key: 'tree2', ox: 0.5, oy: 1 },
+            { x: 600, y: 568, key: 'stone1', ox: 0.5, oy: 1 },
+            { x: 1600, y: 568, key: 'stone1', ox: 0.5, oy: 1 },
+            { x: 470, y: 450, key: 'bush1',  ox: 0.5, oy: 1 },
+            { x: 1180, y: 450, key: 'bush1', ox: 0.5, oy: 1 },
+            { x: 1450, y: 350, key: 'grass1', ox: 0.5, oy: 1 },
+            { x: 760, y: 350, key: 'grass1', ox: 0.5, oy: 1 },
+            { x: 2650, y: 320, key: 'bush1', ox: 0.5, oy: 1 }
+        ];
+
+        this.decorations = this.decorations || [];
+        decoData.forEach(data => {
+            const deco = this.add.image(data.x, data.y, data.key)
+                .setOrigin(data.ox, data.oy)
+                .setDepth(-1); // behind platforms (0) and player (5), in front of bg
+            this.decorations.push(deco);
+        });
+
         // Correção de Ancoragem (Origin Pivot)
         // Posicionamento exato no eixo Y da superfície (568)
         const barrier1 = this.barriers.create(1950, 568, 'fog');
@@ -316,7 +339,11 @@ export class GameScene extends Phaser.Scene {
         this.hazards.clear(true, true);
         this.platforms.clear(true, true);
         this.enemyWalls.clear(true, true);
-        
+        if (this.decorations) {
+            this.decorations.forEach(d => d.destroy());
+            this.decorations = [];
+        }
+
         if (this.barrierText1 && this.barrierText1.active) this.barrierText1.destroy();
         if (this.barrierText2 && this.barrierText2.active) this.barrierText2.destroy();
 
