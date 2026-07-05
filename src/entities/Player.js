@@ -1,18 +1,17 @@
 export class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, x, y, 'fox', 0);
+        super(scene, x, y, 'foxy_idle', 0);
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
         this.setCollideWorldBounds(true);
         this.setDepth(5);
-        // The fox art sits inside a mostly-empty 64x64 frame. Keep a compact
-        // collider anchored near the fox's feet so gameplay physics stay close
-        // to the original 32x32 box.
-        this.body.setSize(30, 30);
-        this.body.setOffset(17, 30);
-        this.play('fox_idle');
+        // Foxy frames are 33x32 and mostly filled. Keep a compact collider
+        // around the body, anchored near the feet. Tunable if misaligned.
+        this.body.setSize(18, 28);
+        this.body.setOffset(8, 4);
+        this.play('foxy_idle');
         
         this.health = 3;
         this.seeds = 0;
@@ -53,7 +52,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
         if (this.keys.A.isDown) {
             this.setVelocityX(-200);
-            this.setFlipX(true); // fox faces right in the sheet, so mirror it to go left
+            this.setFlipX(true); // Foxy faces right by default, so mirror it to go left
         } else if (this.keys.D.isDown) {
             this.setVelocityX(200);
             this.setFlipX(false);
@@ -65,23 +64,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityY(-450);
         }
 
-        // Don't override the hit animation while it is still playing.
-        const playingHit = this.anims.currentAnim
-            && this.anims.currentAnim.key === 'fox_hit'
+        // Don't override the hurt animation while it is still playing.
+        const playingHurt = this.anims.currentAnim
+            && this.anims.currentAnim.key === 'foxy_hurt'
             && this.anims.isPlaying;
 
-        if (!playingHit) {
+        if (!playingHurt) {
             if (!onGround) {
-                // Rising vs falling get distinct poses (frame 44 up, 45 down)
+                // Distinct poses for rising vs falling.
                 if (this.body.velocity.y < 0) {
-                    this.play('fox_rise', true);
+                    this.play('foxy_rise', true);
                 } else {
-                    this.play('fox_fall', true);
+                    this.play('foxy_fall', true);
                 }
             } else if (this.body.velocity.x !== 0) {
-                this.play('fox_walk', true);
+                this.play('foxy_run', true);
             } else {
-                this.play('fox_idle', true);
+                this.play('foxy_idle', true);
             }
         }
 
@@ -96,7 +95,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.health -= 1;
         this.isInvulnerable = true;
         this.setTint(0xff0000);
-        this.play('fox_hit', true);
+        this.play('foxy_hurt', true);
 
         this.scene.time.delayedCall(1000, () => {
             this.clearTint();

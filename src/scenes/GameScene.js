@@ -44,11 +44,6 @@ export class GameScene extends Phaser.Scene {
         // --- Pixel-art assets ---
         const SWAMP = 'assets/free-swamp-game-tileset-pixel-art/';
 
-        this.load.spritesheet('fox', 'assets/fox_charsheet_by_kinetic-kitsune.png', {
-            frameWidth: 64,
-            frameHeight: 64
-        });
-
         this.load.image('ground_tile', SWAMP + '1 Tiles/Tile_02.png');
 
         this.load.spritesheet('rune', SWAMP + '4 Animated objects/Rune.png', {
@@ -65,38 +60,74 @@ export class GameScene extends Phaser.Scene {
         this.load.image('bush1', SWAMP + '3 Objects/Bushes/1.png');
         this.load.image('grass1', SWAMP + '3 Objects/Grass/1.png');
         this.load.image('stone1', SWAMP + '3 Objects/Stones/1.png');
+
+        // --- Sunny Land: player (Foxy) + enemies + FX ---
+        const SUNNY = 'assets/sunnyland/';
+        this.load.spritesheet('foxy_idle', SUNNY + 'foxy-idle.png', { frameWidth: 33, frameHeight: 32 });
+        this.load.spritesheet('foxy_run',  SUNNY + 'foxy-run.png',  { frameWidth: 33, frameHeight: 32 });
+        this.load.spritesheet('foxy_jump', SUNNY + 'foxy-jump.png', { frameWidth: 33, frameHeight: 32 });
+        this.load.spritesheet('foxy_hurt', SUNNY + 'foxy-hurt.png', { frameWidth: 33, frameHeight: 32 });
+        this.load.spritesheet('opossum',   SUNNY + 'opossum.png',   { frameWidth: 36, frameHeight: 28 });
+        this.load.spritesheet('frog_idle', SUNNY + 'frog-idle.png', { frameWidth: 35, frameHeight: 32 });
+        this.load.spritesheet('frog_jump', SUNNY + 'frog-jump.png', { frameWidth: 35, frameHeight: 32 });
+        this.load.spritesheet('enemy_death', SUNNY + 'enemy-death.png', { frameWidth: 40, frameHeight: 41 });
+        this.load.image('spikes', SUNNY + 'spikes.png');
     }
 
     create() {
-        if (!this.anims.exists('fox_idle')) {
+        if (!this.anims.exists('foxy_idle')) {
             this.anims.create({
-                key: 'fox_idle',
-                frames: this.anims.generateFrameNumbers('fox', { start: 0, end: 1 }),
-                frameRate: 4,
+                key: 'foxy_idle',
+                frames: this.anims.generateFrameNumbers('foxy_idle', { start: 0, end: 3 }),
+                frameRate: 6,
                 repeat: -1
             });
             this.anims.create({
-                key: 'fox_walk',
-                frames: this.anims.generateFrameNumbers('fox', { start: 33, end: 40 }),
+                key: 'foxy_run',
+                frames: this.anims.generateFrameNumbers('foxy_run', { start: 0, end: 5 }),
                 frameRate: 12,
                 repeat: -1
             });
             this.anims.create({
-                key: 'fox_rise',
-                frames: this.anims.generateFrameNumbers('fox', { start: 44, end: 44 }),
+                key: 'foxy_rise',
+                frames: this.anims.generateFrameNumbers('foxy_jump', { start: 0, end: 0 }),
                 frameRate: 1,
                 repeat: -1
             });
             this.anims.create({
-                key: 'fox_fall',
-                frames: this.anims.generateFrameNumbers('fox', { start: 45, end: 45 }),
+                key: 'foxy_fall',
+                frames: this.anims.generateFrameNumbers('foxy_jump', { start: 1, end: 1 }),
                 frameRate: 1,
                 repeat: -1
             });
             this.anims.create({
-                key: 'fox_hit',
-                frames: this.anims.generateFrameNumbers('fox', { start: 55, end: 56 }),
+                key: 'foxy_hurt',
+                frames: this.anims.generateFrameNumbers('foxy_hurt', { start: 0, end: 1 }),
                 frameRate: 8,
+                repeat: 0
+            });
+            this.anims.create({
+                key: 'opossum_walk',
+                frames: this.anims.generateFrameNumbers('opossum', { start: 0, end: 5 }),
+                frameRate: 10,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'frog_idle',
+                frames: this.anims.generateFrameNumbers('frog_idle', { start: 0, end: 3 }),
+                frameRate: 6,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'frog_jump',
+                frames: this.anims.generateFrameNumbers('frog_jump', { start: 0, end: 2 }),
+                frameRate: 8,
+                repeat: 0
+            });
+            this.anims.create({
+                key: 'enemy_death',
+                frames: this.anims.generateFrameNumbers('enemy_death', { start: 0, end: 5 }),
+                frameRate: 12,
                 repeat: 0
             });
             this.anims.create({
