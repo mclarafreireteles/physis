@@ -330,8 +330,10 @@ export class GameScene extends Phaser.Scene {
         frog.enemyType = 'frog';
         frog.setCollideWorldBounds(true);
         frog.setPushable(false);
-        frog.body.setSize(26, 22);
-        frog.body.setOffset(4, 10);
+        // Frog art's feet sit at y~27 within the 32px frame (5px of empty
+        // padding below), so end the collider there or it floats above ground.
+        frog.body.setSize(26, 20);
+        frog.body.setOffset(5, 7);
         frog.play('frog_idle');
         frog.nextHop = this.time.now + Phaser.Math.Between(800, 1800);
     }
