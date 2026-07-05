@@ -155,15 +155,18 @@ export class GameScene extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
         this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
-        // Corruption: the forest starts "ashen" (a grey veil drains its colour)
-        // and regains vibrancy as the player purifies. A screen-space overlay
-        // keeps this robust across renderers — no post-processing pipeline.
+        // Corruption: the whole scene starts truly desaturated (grey) and
+        // regains colour as the player purifies. Uses the built-in ColorMatrix
+        // camera FX, so it filters every asset the camera draws. WebGL only;
+        // postFX is undefined on the Canvas renderer, so it no-ops there.
         this.corruptionLevel = 1;
         this._corruption = 1;
-        this.corruptionVeil = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x8b9199)
-            .setOrigin(0, 0)
-            .setScrollFactor(0)
-            .setDepth(40);
+        if (this.cameras.main.postFX) {
+            this.cameras.main.postFX.clear();
+            this.colorMatrix = this.cameras.main.postFX.addColorMatrix();
+        } else {
+            this.colorMatrix = null;
+        }
         this.applyCorruption(1);
 
         this.platforms = this.physics.add.staticGroup();
@@ -355,16 +358,17 @@ export class GameScene extends Phaser.Scene {
         fx.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => fx.destroy());
     }
 
-    // Apply the corruption veil now: 1 = fully ashen/grey, 0 = full colour.
+    // Apply desaturation now: 1 = fully grey (corrupted), 0 = full colour.
+    // saturate(0) is the identity matrix; saturate(-1) is fully grey.
     applyCorruption(amount) {
         this._corruption = amount;
-        if (this.corruptionVeil) this.corruptionVeil.setAlpha(amount * 0.55);
+        if (this.colorMatrix) this.colorMatrix.saturate(-amount);
     }
 
-    // Settle the world's corruption to `target` (1 = ashen, 0 = full colour).
+    // Settle the world's desaturation to `target` (1 = grey, 0 = full colour).
     setCorruption(target, duration = 1200) {
         this.corruptionLevel = target;
-        if (!this.corruptionVeil) return;
+        if (!this.colorMatrix) return;
         if (this.corruptionTween) this.corruptionTween.stop();
         this.corruptionTween = this.tweens.addCounter({
             from: this._corruption,
@@ -377,7 +381,7 @@ export class GameScene extends Phaser.Scene {
 
     // A brief flash of colour (used on each cure), returning to the current level.
     pulseColor() {
-        if (!this.corruptionVeil) return;
+        if (!this.colorMatrix) return;
         this.tweens.addCounter({
             from: this.corruptionLevel,
             to: Math.max(0, this.corruptionLevel - 0.35),

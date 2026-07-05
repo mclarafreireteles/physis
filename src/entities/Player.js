@@ -25,7 +25,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // --------------------------------------------------------
         
         // 1. Array para armazenar os ícones de vida (Folhas)
-        // HUD sits above the corruption veil (depth 40) so it stays readable.
+        // HUD is drawn on top of the world.
         this.healthIcons = [];
         for (let i = 0; i < 3; i++) {
             // Posiciona cada folha com um espaçamento de 40 pixels
