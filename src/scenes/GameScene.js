@@ -160,7 +160,6 @@ export class GameScene extends Phaser.Scene {
         this.enemies = this.physics.add.group();
         this.seeds = this.physics.add.group();
         this.barriers = this.physics.add.staticGroup();
-        this.curedAnimals = this.physics.add.group();
         this.enemyWalls = this.physics.add.staticGroup();
 
         this.createLevelLayout();
@@ -171,7 +170,6 @@ export class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.enemies, this.platforms);
         this.physics.add.collider(this.seeds, this.platforms);
-        this.physics.add.collider(this.curedAnimals, this.platforms)    
         this.physics.add.collider(this.enemies, this.enemyWalls);
 
         this.physics.add.collider(this.player, this.enemies, this.handleEnemyCollision, null, this);
@@ -189,6 +187,29 @@ export class GameScene extends Phaser.Scene {
                 // Farther layers (lower i) scroll slower for depth.
                 layer.tilePositionX = scrollX * (0.15 + i * 0.15);
             });
+        }
+
+        this.enemies.getChildren().forEach(enemy => {
+            if (enemy.enemyType === 'opossum') {
+                // Opossum faces left by default; mirror it when moving right.
+                enemy.setFlipX(enemy.body.velocity.x > 0);
+            } else if (enemy.enemyType === 'frog') {
+                this.updateFrog(enemy);
+            }
+        });
+    }
+
+    updateFrog(frog) {
+        const onGround = frog.body.touching.down || frog.body.blocked.down;
+        if (!onGround) return;
+
+        if (frog.anims.currentAnim && frog.anims.currentAnim.key === 'frog_jump') {
+            frog.play('frog_idle', true);
+        }
+        if (this.time.now > frog.nextHop) {
+            frog.setVelocityY(-280); // hops straight up so it never falls off a ledge
+            frog.play('frog_jump', true);
+            frog.nextHop = this.time.now + Phaser.Math.Between(1200, 2200);
         }
     }
 
@@ -245,12 +266,12 @@ export class GameScene extends Phaser.Scene {
             spike.refreshBody();
         });
 
-        this.spawnEnemy(600, 500, 80);
-        this.spawnEnemy(900, 500, -50);  // Novo inimigo inserido para balanceamento
-        this.spawnEnemy(1200, 500, -60);
-        this.spawnEnemy(1500, 300, 50);
-        this.spawnEnemy(2400, 500, 70);  // Novo inimigo após a primeira barreira
-        this.spawnEnemy(2650, 500, 100);
+        this.spawnOpossum(600, 500, 80);
+        this.spawnFrog(820, 500);        // saltador estacionário na 1ª plataforma
+        this.spawnOpossum(1200, 500, -60);
+        this.spawnOpossum(1500, 300, 50);
+        this.spawnOpossum(2400, 500, 70);
+        this.spawnFrog(2650, 500);       // saltador na plataforma base final
 
         // --- Decoração ambiental (sem colisão, atrás das plataformas) ---
         const decoData = [
@@ -291,34 +312,42 @@ export class GameScene extends Phaser.Scene {
     
     }
 
-    spawnEnemy(x, y, velocityX) {
-        const enemy = this.enemies.create(x, y, 'enemy');
+    spawnOpossum(x, y, velocityX) {
+        const enemy = this.enemies.create(x, y, 'opossum');
+        enemy.enemyType = 'opossum';
         enemy.setVelocityX(velocityX);
         enemy.setBounceX(1);
         enemy.setCollideWorldBounds(true);
-        
         enemy.setPushable(false);
+        enemy.body.setSize(30, 20);
+        enemy.body.setOffset(3, 8);
+        enemy.play('opossum_walk');
+    }
+
+    spawnFrog(x, y) {
+        const frog = this.enemies.create(x, y, 'frog_idle');
+        frog.enemyType = 'frog';
+        frog.setCollideWorldBounds(true);
+        frog.setPushable(false);
+        frog.body.setSize(26, 22);
+        frog.body.setOffset(4, 10);
+        frog.play('frog_idle');
+        frog.nextHop = this.time.now + Phaser.Math.Between(800, 1800);
+    }
+
+    spawnDeathFX(x, y) {
+        const fx = this.add.sprite(x, y, 'enemy_death').setDepth(4);
+        fx.play('enemy_death');
+        fx.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => fx.destroy());
     }
 
     handleEnemyCollision(player, enemy) {
-        if (enemy.texture.key === 'animal_cured') return;
-
         if (player.body.touching.down && enemy.body.touching.up) {
-            
-            player.setVelocityY(-350); 
+            // Stomp = "cure": bounce the player, drop a seed, poof the enemy.
+            player.setVelocityY(-350);
             this.spawnSeed(enemy.x, enemy.y);
-            
-            enemy.setTexture('animal_cured');
-            enemy.setVelocity(0, -150); 
-            enemy.setImmovable(true);
-            
-            this.time.delayedCall(0, () => {
-                this.enemies.remove(enemy);
-                this.curedAnimals.add(enemy);
-                
-                enemy.setCollideWorldBounds(true); 
-            });
-
+            this.spawnDeathFX(enemy.x, enemy.y);
+            enemy.destroy();
         } else {
             this.executePlayerDamage(player, enemy);
         }
@@ -370,7 +399,6 @@ export class GameScene extends Phaser.Scene {
 
     resetArea() {
         this.enemies.clear(true, true);
-        this.curedAnimals.clear(true, true);
         this.seeds.clear(true, true);
         this.barriers.clear(true, true);
         this.hazards.clear(true, true);
