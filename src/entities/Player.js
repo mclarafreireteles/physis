@@ -25,24 +25,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // --------------------------------------------------------
         
         // 1. Array para armazenar os ícones de vida (Folhas)
+        // HUD sits above the corruption veil (depth 40) so it stays readable.
         this.healthIcons = [];
         for (let i = 0; i < 3; i++) {
             // Posiciona cada folha com um espaçamento de 40 pixels
             const icon = scene.add.image(30 + (i * 40), 30, 'ui_leaf');
             icon.setScrollFactor(0); // Fixa na câmara
+            icon.setDepth(100);
             this.healthIcons.push(icon);
         }
 
         // 2. Ícone e Contador de Sementes
         this.seedIcon = scene.add.image(30, 75, 'seed');
         this.seedIcon.setScrollFactor(0);
-        
-        this.seedText = scene.add.text(50, 65, 'x 0', { 
-            fontSize: '24px', 
+        this.seedIcon.setDepth(100);
+
+        this.seedText = scene.add.text(50, 65, 'x 0', {
+            fontSize: '24px',
             fill: '#ffffff',
             fontStyle: 'bold'
         });
         this.seedText.setScrollFactor(0);
+        this.seedText.setDepth(100);
 
         this.updateUI();
     }

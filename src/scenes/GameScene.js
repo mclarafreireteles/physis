@@ -155,6 +155,17 @@ export class GameScene extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
         this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
+        // Corruption: the forest starts "ashen" (a grey veil drains its colour)
+        // and regains vibrancy as the player purifies. A screen-space overlay
+        // keeps this robust across renderers — no post-processing pipeline.
+        this.corruptionLevel = 1;
+        this._corruption = 1;
+        this.corruptionVeil = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x8b9199)
+            .setOrigin(0, 0)
+            .setScrollFactor(0)
+            .setDepth(40);
+        this.applyCorruption(1);
+
         this.platforms = this.physics.add.staticGroup();
         this.hazards = this.physics.add.staticGroup();
         this.enemies = this.physics.add.group();
@@ -303,13 +314,13 @@ export class GameScene extends Phaser.Scene {
         barrier1.setOrigin(0.5, 1);
         barrier1.refreshBody();
         barrier1.cost = 2;
-        this.barrierText1 = this.add.text(1900, 280, '[E] Purificar (2)', { fontSize: '14px', fill: '#aaa' });
+        this.barrierText1 = this.add.text(1900, 280, '[E] Purificar (2)', { fontSize: '14px', fill: '#aaa' }).setDepth(60);
 
         const finalMatriz = this.barriers.create(3100, 568, 'fog');
         finalMatriz.setOrigin(0.5, 1);
         finalMatriz.refreshBody();
         finalMatriz.cost = 4;
-        this.barrierText2 = this.add.text(3020, 280, 'Árvore Matriz [E] (4)', { fontSize: '14px', fill: '#ffff00' });
+        this.barrierText2 = this.add.text(3020, 280, 'Árvore Matriz [E] (4)', { fontSize: '14px', fill: '#ffff00' }).setDepth(60);
     
     }
 
@@ -344,12 +355,47 @@ export class GameScene extends Phaser.Scene {
         fx.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => fx.destroy());
     }
 
+    // Apply the corruption veil now: 1 = fully ashen/grey, 0 = full colour.
+    applyCorruption(amount) {
+        this._corruption = amount;
+        if (this.corruptionVeil) this.corruptionVeil.setAlpha(amount * 0.55);
+    }
+
+    // Settle the world's corruption to `target` (1 = ashen, 0 = full colour).
+    setCorruption(target, duration = 1200) {
+        this.corruptionLevel = target;
+        if (!this.corruptionVeil) return;
+        if (this.corruptionTween) this.corruptionTween.stop();
+        this.corruptionTween = this.tweens.addCounter({
+            from: this._corruption,
+            to: target,
+            duration,
+            ease: 'Sine.easeInOut',
+            onUpdate: t => this.applyCorruption(t.getValue())
+        });
+    }
+
+    // A brief flash of colour (used on each cure), returning to the current level.
+    pulseColor() {
+        if (!this.corruptionVeil) return;
+        this.tweens.addCounter({
+            from: this.corruptionLevel,
+            to: Math.max(0, this.corruptionLevel - 0.35),
+            duration: 140,
+            yoyo: true,
+            ease: 'Quad.easeOut',
+            onUpdate: t => this.applyCorruption(t.getValue()),
+            onComplete: () => this.applyCorruption(this.corruptionLevel)
+        });
+    }
+
     handleEnemyCollision(player, enemy) {
         if (player.body.touching.down && enemy.body.touching.up) {
             // Stomp = "cure": bounce the player, drop a seed, poof the enemy.
             player.setVelocityY(-350);
             this.spawnSeed(enemy.x, enemy.y);
             this.spawnDeathFX(enemy.x, enemy.y);
+            this.pulseColor(); // a burst of colour on each cure
             enemy.destroy();
         } else {
             this.executePlayerDamage(player, enemy);
@@ -389,11 +435,11 @@ export class GameScene extends Phaser.Scene {
                 
                 if (barrier.x < 2000) {
                     this.barrierText1.destroy();
-                    this.cameras.main.setBackgroundColor('#2e5c3a');
+                    this.setCorruption(0.45); // partial colour returns
                 } else {
                     this.barrierText2.destroy();
-                    this.cameras.main.setBackgroundColor('#1d4a2b');
-                    this.add.text(this.cameras.main.scrollX + 230, 250, 'Floresta Revitalizada!', { fontSize: '32px', fill: '#00ff00' });
+                    this.setCorruption(0); // full colour: the forest is revived
+                    this.add.text(230, 250, 'Floresta Revitalizada!', { fontSize: '32px', fill: '#00ff00' }).setScrollFactor(0);
                 }
                 barrier.destroy();
             }
@@ -415,7 +461,11 @@ export class GameScene extends Phaser.Scene {
         if (this.barrierText1 && this.barrierText1.active) this.barrierText1.destroy();
         if (this.barrierText2 && this.barrierText2.active) this.barrierText2.destroy();
 
-        this.cameras.main.setBackgroundColor('#3a3a3a');
+        // Area re-corrupts: snap back to fully grey.
+        this.corruptionLevel = 1;
+        if (this.corruptionTween) this.corruptionTween.stop();
+        this.applyCorruption(1);
+
         this.createLevelLayout();
     }
 }
