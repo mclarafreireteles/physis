@@ -258,11 +258,12 @@ export class GameScene extends Phaser.Scene {
         ];
 
         hazardData.forEach(data => {
-            const spike = this.hazards.create(data.x, data.y, 'spike');
-            spike.setOrigin(0, 0);
-            // Ajusta o volume delimitador (Bounding Box) do espinho para ser mais perdoável
-            spike.body.setSize(24, 24);
-            spike.body.setOffset(4, 8);
+            // Spikes sit on the surface: base at data.y + 32 (where the old
+            // placeholder's base was), centred on the old tile.
+            const spike = this.hazards.create(data.x + 16, data.y + 32, 'spikes');
+            spike.setOrigin(0.5, 1);
+            spike.setScale(2); // 15x10 art -> ~30x20 on screen
+            spike.setDepth(1);
             spike.refreshBody();
         });
 
