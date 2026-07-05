@@ -72,7 +72,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
         if (!playingHit) {
             if (!onGround) {
-                this.play('fox_jump', true);
+                // Rising vs falling get distinct poses (frame 44 up, 45 down)
+                if (this.body.velocity.y < 0) {
+                    this.play('fox_rise', true);
+                } else {
+                    this.play('fox_fall', true);
+                }
             } else if (this.body.velocity.x !== 0) {
                 this.play('fox_walk', true);
             } else {

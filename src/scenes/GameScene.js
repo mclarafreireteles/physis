@@ -82,9 +82,15 @@ export class GameScene extends Phaser.Scene {
                 repeat: -1
             });
             this.anims.create({
-                key: 'fox_jump',
-                frames: this.anims.generateFrameNumbers('fox', { start: 44, end: 45 }),
-                frameRate: 6,
+                key: 'fox_rise',
+                frames: this.anims.generateFrameNumbers('fox', { start: 44, end: 44 }),
+                frameRate: 1,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'fox_fall',
+                frames: this.anims.generateFrameNumbers('fox', { start: 45, end: 45 }),
+                frameRate: 1,
                 repeat: -1
             });
             this.anims.create({
