@@ -1,0 +1,6 @@
+# Local dev tooling (preview server config)
+.claude/
+
+# OS / archive junk
+.DS_Store
+__MACOSX/
